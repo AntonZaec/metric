@@ -3,6 +3,12 @@
 -export([init/1, handle_call/3, handle_cast/2]).
 -export([start_link/2, report/3, average/2]).
 
+-ifdef(debug).
+-define(PRINT_DEBUG(FormatStr, Args), io:format(FormatStr, Args)).
+-else.
+-define(PRINT_DEBUG(FormatStr, Args), ok).
+-endif.
+
 start_link(Name, Interval) ->
 	gen_server:start_link(?MODULE, [Name, Interval], []).
 
@@ -11,15 +17,15 @@ report(MetricServer, MetricName, Value) ->
 	ok.
 
 average(MetricServer, MetricName) ->
-	TimeOutMs = 1000,
+	TimeOutMs = 3000,
 	try
-		case gen_sever:call(MetricServer, {metric_average, MetricName}, TimeOutMs) of
+		case gen_server:call(MetricServer, {metric_average, MetricName}, TimeOutMs) of
 			no_data -> 0;
 			Average -> Average
 		end
 	catch
-		error:Error ->
-			io:format("Requesting of average failed: ~p~n", [Error]),
+		exit:{timeout, Where} ->
+			io:format("** Error. Requesting of average failed - timeout (~p).~n", [Where]),
 			0
 	end.
 
@@ -32,6 +38,7 @@ init([MetricName, Interval]) ->
 		count => 0}}.
 
 handle_call({metric_average, MetricName}, _From, #{name := MetricName} = State) ->
+	?PRINT_DEBUG("State when average: ~p. Pid ~p.~n", [State, self()]),
 	NewState = update_state_for_interval(State),
 	#{sum := Sum, count := Count} = NewState,
 	case Count of
@@ -40,6 +47,7 @@ handle_call({metric_average, MetricName}, _From, #{name := MetricName} = State) 
 	end.
 
 handle_cast({metric_report, MetricName, Value}, #{name := MetricName} = State) ->
+	?PRINT_DEBUG("State when report: ~p. Pid ~p.~n", [State, self()]),
 	NewState = update_state_for_interval(State),
 	#{values := Values, sum := Sum, count := Count} = NewState,
 	CurTimeMs = erlang:system_time(milli_seconds),
