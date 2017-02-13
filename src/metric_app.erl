@@ -12,12 +12,12 @@ stop(_State) ->
     ok.
 
 report(MetricName, Value) -> 
-	{ok, Interval} = application:get_env(interval_ms),
+	{ok, Interval} = application:get_env(metric, interval_ms),
 	MetricServer = metric_manager:get_or_create_mserver(MetricName, Interval),
 	metric_server:report(MetricServer, MetricName, Value),
 	ok.
 
 average(MetricName) ->
-	{ok, Interval} = application:get_env(interval_ms),
+	{ok, Interval} = application:get_env(metric, interval_ms),
 	MetricServer = metric_manager:get_or_create_mserver(MetricName, Interval),
 	metric_server:average(MetricServer, MetricName).

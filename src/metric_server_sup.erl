@@ -19,5 +19,6 @@ init(_Args) ->
     {ok, {{simple_one_for_one, 1, 60}, [ChildSpec]}}.
 
 add_mserver(MetricName, Interval) ->
-	{ok, MetricServer} = supervisor:start_child(metric_server_sup, [MetricName, Interval]),
+	{ok, MetricServer} = supervisor:start_child(
+		metric_server_sup, [MetricName, Interval]),
 	MetricServer.

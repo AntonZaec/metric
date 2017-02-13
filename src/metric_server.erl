@@ -1,13 +1,13 @@
 -module(metric_server).
 -behaviour(gen_server).
--export([init/2, handle_call/3, handle_cast/2]).
+-export([init/1, handle_call/3, handle_cast/2]).
 -export([start_link/2, report/3, average/2]).
 
 start_link(Name, Interval) ->
 	gen_server:start_link(?MODULE, [Name, Interval], []).
 
 report(MetricServer, MetricName, Value) ->
-	gen_sever:cast(MetricServer, {metric_report, MetricName, Value}),
+	gen_server:cast(MetricServer, {metric_report, MetricName, Value}),
 	ok.
 
 average(MetricServer, MetricName) ->
@@ -23,7 +23,7 @@ average(MetricServer, MetricName) ->
 			0
 	end.
 
-init(MetricName, Interval) ->
+init([MetricName, Interval]) ->
 	{ok, #{
 		name => MetricName, 
 		interval => Interval, 
