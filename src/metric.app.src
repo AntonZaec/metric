@@ -1,0 +1,15 @@
+{application, metric,
+ [{description, "Application for connecting numeric metrics"},
+  {vsn, "0.1.0"},
+  {registered, [metric_manager, metric_server_sup]},
+  {mod, { metric_app, []}},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[{interval_ms, 60000}]},
+  {modules, []},
+  {maintainers, []},
+  {licenses, []},
+  {links, []}
+ ]}.
