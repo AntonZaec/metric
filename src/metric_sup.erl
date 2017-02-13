@@ -11,7 +11,7 @@ start_link() ->
 init([]) ->
 	MetricProcSupSpec = #{
 		id => 1, 
-		start => {metric_proc_sup, start_link, []}, 
+		start => {metric_server_sup, start_link, []}, 
 		restart => temporary, 
 		shutdown => brutal_kill, 
 		type => supervisor
