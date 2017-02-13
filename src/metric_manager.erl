@@ -3,9 +3,12 @@
 -export([init/1, handle_call/3]).
 -export([start_link/0, get_or_create_mserver/2]).
 
+%% Start metric manager
 start_link() ->
 	gen_server:start_link({local, metric_manager}, ?MODULE, [], []).
-
+%% Return existed metric's server or create new.
+%% Interval used only for new metrics and mean
+%% the period of data storing.
 get_or_create_mserver(MetricName, Interval) ->
 	case ets:lookup(metric_servers, MetricName) of
 		[] -> create_mserver(MetricName, Interval);

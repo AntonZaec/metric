@@ -8,14 +8,14 @@
 -else.
 -define(PRINT_DEBUG(FormatStr, Args), ok).
 -endif.
-
+%% Start metric's server
 start_link(Name, Interval) ->
 	gen_server:start_link(?MODULE, [Name, Interval], []).
-
+%% Report metric value
 report(MetricServer, MetricName, Value) ->
 	gen_server:cast(MetricServer, {metric_report, MetricName, Value}),
 	ok.
-
+%% Get average of metric's values
 average(MetricServer, MetricName) ->
 	TimeOutMs = 3000,
 	try

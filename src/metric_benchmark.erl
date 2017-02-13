@@ -5,6 +5,7 @@
 -define(CLIENTS_NUMBER, 100).
 -define(CLIENTS_REQ_NUMBER, 1000).
 
+%% Benchmark for appending new metrics
 create_metric_benchmark() ->
 	Indexes = lists:seq(1, ?METRICS_NUMBER),
 	Metrics = [list_to_binary(integer_to_list(X))|| X <- Indexes],
@@ -18,6 +19,7 @@ create_metric_benchmark() ->
 		[erlang:system_time(milli_seconds) - Start]),
 	application:stop(metric).
 
+%% Basic benchmark
 benchmark() ->
 	rand:seed(exs1024, 
 		{181, 
