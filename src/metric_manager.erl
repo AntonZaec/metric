@@ -10,14 +10,10 @@ start_link() ->
 %% Interval used only for new metrics and mean
 %% the period of data storing.
 get_or_create_mserver(MetricName, Interval) ->
-	case ets:lookup(metric_servers, MetricName) of
-		[] -> create_mserver(MetricName, Interval);
-		[{MetricName, MetricServer}] -> 
-			case is_process_alive(MetricServer) of
-				true -> MetricServer;
-				false -> create_mserver(MetricName, Interval)
-			end
-	end.
+	CreateNew = fun() -> create_mserver(MetricName, Interval) end,
+	do_for_metric(MetricName,
+		CreateNew,
+		fun(MetricServer) -> MetricServer end).
 
 create_mserver(MetricName, Interval) ->
 	MetricServer = gen_server:call(
@@ -30,10 +26,21 @@ init(_Args) ->
 	{ok, []}.
 
 handle_call({create, MetricName, Interval}, _From, State) ->
-	case ets:lookup(metric_servers, MetricName) of
-		[] -> 
+	CreateNew = fun() ->
 			MetricServer = metric_server_sup:add_mserver(MetricName, Interval),
 			ets:insert(metric_servers, {MetricName, MetricServer}),
-			{reply, MetricServer, State};
-		[{MetricName, MetricServer}] -> {reply, MetricServer, State}
+			{reply, MetricServer, State}
+		end,
+	do_for_metric(MetricName,
+		CreateNew, 
+		fun(MetricServer)-> {reply, MetricServer, State} end).
+
+do_for_metric(MetricName, FunIfNotExistsOrNotAlive, FunIfAlive) ->
+	case ets:lookup(metric_servers, MetricName) of
+		[{MetricName, MetricServer}] -> 
+			case is_process_alive(MetricServer) of
+				true -> FunIfAlive(MetricServer);
+				false -> FunIfNotExistsOrNotAlive()
+			end;
+		[] -> FunIfNotExistsOrNotAlive()
 	end.
