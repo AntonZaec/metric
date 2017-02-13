@@ -6,33 +6,34 @@
 
 average_for_new_metric_test() ->
 	test_start(),
-	?assert(float_eq(average("new_metric"), 0)),
+	?assert(float_eq(average(<<"new_metric">>), 0)),
 	test_stop().
 	
 average_for_single_report_test() ->
 	test_start(),
-	report("new_metric", 11),
-	?assert(float_eq(average("new_metric"), 11)),
+	report(<<"new_metric">>, 11),
+	?assert(float_eq(average(<<"new_metric">>), 11)),
 	test_stop().
 
 average_for_two_metrics_test() ->
 	test_start(),
-	report("first_metric", 10),
-	report("second_metric", -10),
-	?assert(float_eq(average("first_metric"), 10)),
-	?assert(float_eq(average("second_metric"), -10)),
+	report(<<"first_metric">>, 10),
+	report(<<"second_metric">>, -10),
+	?assert(float_eq(average(<<"first_metric">>), 10)),
+	?assert(float_eq(average(<<"second_metric">>), -10)),
 	test_stop().
 
 average_changing() ->
 	test_start(),
-	report("new_metric", 1),
+	MetricName = <<"new_metric">>,
+	report(MetricName, 1),
 	timer:sleep(?TIMEOUT div 2),
-	report("new_metric", 2),
-	?assert(float_eq(average("new_metric"), 1.5)),
+	report(MetricName, 2),
+	?assert(float_eq(average(MetricName), 1.5)),
 	timer:sleep((?TIMEOUT div 2) + 1),
-	?assert(float_eq(average("new_metric"), 2)),
+	?assert(float_eq(average(MetricName), 2)),
 	timer:sleep((?TIMEOUT div 2)),
-	?assert(float_eq(average("new_metric"), 0)),
+	?assert(float_eq(average(MetricName), 0)),
 	test_stop().
 
 average_changing_test_() ->
