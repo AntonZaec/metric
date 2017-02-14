@@ -33,7 +33,7 @@ init([MetricName, Interval]) ->
 	{ok, {
 		MetricName, %name
 		Interval, %interval
-		[], %values
+		queue:new(), %values
 		0.0, %sum 
 		0}}. %count.
 
@@ -54,22 +54,28 @@ handle_cast({metric_report, MetricName, Value},
 	{_, _, Values, Sum, Count} = UpdatedState,
 	CurTimeMs = erlang:system_time(milli_seconds),
 	NewState = update_state(UpdatedState, Count + 1, 
-		Sum + Value, [{CurTimeMs, Value}|Values]),
+		Sum + Value, queue:in({CurTimeMs, Value}, Values)),
 	{noreply, NewState}.
 
 update_state_for_interval({_, Interval, Values, _, _} = State) ->
 	CurTimeMs = erlang:system_time(milli_seconds),
 	MinTime = CurTimeMs - Interval,
-	NewState = remove_values_before(
-		MinTime, update_state_value(State, lists:reverse(Values))),
-	update_state_value(NewState, lists:reverse(element(3, NewState))).
+	remove_values_before(
+		MinTime, update_state_value(State, Values)).
 
-remove_values_before(MinTime, 
-		{_, _, [{ValTime, Val}|Values], Sum, Count} = State) when ValTime =< MinTime ->
-	NewState = update_state(State, Count - 1, Sum - Val, Values),
-	remove_values_before(MinTime, NewState);
-remove_values_before(_MinTime, State) ->
-	State.
+remove_values_before(MinTime, {_, _, Values, Sum, Count} = State) ->
+	case queue:is_empty(Values) of
+		true -> State;
+		false ->
+			{ValTime, Val} = queue:get(Values),
+			if
+				ValTime =< MinTime ->
+					NewState = update_state(
+						State, Count - 1, Sum - Val, queue:drop(Values)),
+					remove_values_before(MinTime, NewState);
+				true -> State
+			end
+	end.
 
 update_state(State, Count, Sum, Values) ->
 	S1 = update_state_count(State, Count),
