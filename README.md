@@ -1,4 +1,6 @@
 # metric
+Simple erlang application that collect metrics. Just a test task for getting new job.
+
 
 Example of usage:
 ```
